@@ -141,7 +141,7 @@ let generatedCss: string = cssLines.join('\n')
     <meta name="keywords" content={pageKeywords} />
     <link rel="canonical" href={pageUrl} />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/aigis.webp" type="image/svg+xml" />
     <link
       rel="alternate"
       type="application/rss+xml"
@@ -233,7 +233,6 @@ let generatedCss: string = cssLines.join('\n')
               } catch (e) {
                 /* ignore download link creation errors */
               }
-
               for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 const page = await pdf.getPage(pageNum)
                 // scale to fit container width (approx)
