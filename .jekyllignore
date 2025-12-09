@@ -1,0 +1,9 @@
+# Ignore the Astro source and build-related folders so Jekyll doesn't parse them
+src/
+public/
+src/**
+**/*.astro
+**/*.ts
+**/*.tsx
+**/*.mjs
+**/*.cjs
