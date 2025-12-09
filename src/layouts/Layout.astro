@@ -164,5 +164,109 @@ let generatedCss: string = cssLines.join('\n')
       </main>
       <Footer />
     </div>
+    <script is:inline type="module">
+      // PDF.js iframe replacer: finds <iframe src="...pdf"> and renders PDF pages
+      // as images using PDF.js from CDN.
+      (function () {
+        const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179';
+
+        function loadScript(src) {
+          return new Promise((resolve, reject) => {
+            if (document.querySelector(`script[src="${src}"]`)) return resolve()
+            const s = document.createElement('script')
+            s.src = src
+            s.async = true
+            s.onload = () => resolve()
+            s.onerror = (e) => reject(e)
+            document.head.appendChild(s)
+          })
+        }
+
+        async function replacePdfIframes() {
+          try {
+            await loadScript(`${PDFJS_CDN}/pdf.min.js`)
+            await loadScript(`${PDFJS_CDN}/pdf.worker.min.js`)
+          } catch (e) {
+            // If loading PDF.js fails, abort silently
+            console.error('Failed to load PDF.js', e)
+            return
+          }
+
+          const pdfjsLib = window.pdfjsLib || window.pdfjs
+          if (!pdfjsLib) {
+            console.error('PDF.js not available on window')
+            return
+          }
+          // set workerSrc just in case
+          try {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `${PDFJS_CDN}/pdf.worker.min.js`
+          } catch (e) {}
+
+          const iframes = Array.from(document.querySelectorAll('iframe'))
+            .filter((el) => el.getAttribute('src') && el.getAttribute('src').toLowerCase().endsWith('.pdf'))
+
+          for (const iframe of iframes) {
+            const src = iframe.getAttribute('src')
+            const container = document.createElement('div')
+            container.className = 'pdfjs-renderer mb-4'
+            // copy some sizing from iframe if provided
+            const width = iframe.getAttribute('width') || '100%'
+            const height = iframe.getAttribute('height') || undefined
+            if (height) container.style.minHeight = height
+
+            iframe.replaceWith(container)
+
+            try {
+              const loadingTask = pdfjsLib.getDocument(src)
+              const pdf = await loadingTask.promise
+              // Add a download link/button for the PDF
+              try {
+                const dl = document.createElement('a')
+                dl.href = src
+                dl.textContent = 'Download PDF'
+                dl.className = 'pdf-download inline-block mb-2 text-sm text-accent'
+                dl.setAttribute('target', '_blank')
+                dl.setAttribute('rel', 'noopener')
+                // Use download attribute when possible (may be ignored cross-origin)
+                dl.setAttribute('download', '')
+                container.appendChild(dl)
+              } catch (e) {
+                /* ignore download link creation errors */
+              }
+
+              for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum)
+                // scale to fit container width (approx)
+                const scale = 1.5
+                const viewport = page.getViewport({ scale })
+                const canvas = document.createElement('canvas')
+                canvas.width = viewport.width
+                canvas.height = viewport.height
+                const ctx = canvas.getContext('2d')
+                await page.render({ canvasContext: ctx, viewport }).promise
+                // convert to image for lighter DOM and to allow lazy-loading
+                const img = document.createElement('img')
+                img.src = canvas.toDataURL('image/png')
+                img.alt = `PDF page ${pageNum}`
+                img.loading = 'lazy'
+                img.style.width = '100%'
+                img.style.display = 'block'
+                img.className = 'pdf-page'
+                container.appendChild(img)
+              }
+            } catch (err) {
+              console.error('Error rendering PDF', err)
+              container.innerHTML = `<div class="text-red-600">Failed to load PDF: ${src}</div>`
+            }
+          }
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', replacePdfIframes)
+        } else {
+          replacePdfIframes()
+        }
+      })()
+    </script>
   </body>
 </html>
