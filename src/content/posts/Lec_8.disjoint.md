@@ -8,4 +8,4 @@ tags: ['algorithm']
 toc: true
 ---
 
-<iframe src="/pdf/sort.pdf" width="100%" height="700" style="border: none;"></iframe>
+<iframe src="/pdf/disjoint.pdf" width="100%" height="700" style="border: none;"></iframe>
