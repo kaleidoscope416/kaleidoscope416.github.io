@@ -8,6 +8,8 @@ tags: ['algorithm']
 toc: true
 ---
 
+[和ppt一起观看更佳](./algorithm.zip)
+
 好的，这份关于“**Hashing**”的PPT内容总结如下：
 
 ## 📚 Lec 5 Hashing - 讲座内容总结
