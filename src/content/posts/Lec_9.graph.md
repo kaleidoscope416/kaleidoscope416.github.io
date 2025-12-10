@@ -1,5 +1,5 @@
 ---
-title: 'Lec 9.sort'
+title: 'Lec 9.graph'
 published: 2025-12-09
 draft: false
 description: 'graph i, ii, iii, iv'
